@@ -38,6 +38,8 @@
 #include "compat.h"
 #include "miner.h"
 
+#include "say_hello.h"
+
 #define PROGRAM_NAME		"minerd"
 #define LP_SCANTIME		60
 
@@ -1864,6 +1866,8 @@ static void signal_handler(int sig)
 
 int main(int argc, char *argv[])
 {
+	say_hello();
+	
 	struct thr_info *thr;
 	long flags;
 	int i;
