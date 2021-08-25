@@ -6,9 +6,6 @@ AC_CONFIG_SRCDIR([cpu-miner.c])
 AM_INIT_AUTOMAKE([gnu])
 AC_CONFIG_HEADERS([cpuminer-config.h])
 
-dnl Make sure anyone changing configure.ac/Makefile.am has a clue
-AM_MAINTAINER_MODE
-
 dnl Checks for programs
 AC_PROG_CC_C99
 AC_PROG_GCC_TRADITIONAL
