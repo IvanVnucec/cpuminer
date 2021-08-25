@@ -1,10 +1,6 @@
 DEMO_INCLUDES = -I$(top_srcdir)/../demo
 
-if WANT_JANSSON
 JANSSON_INCLUDES= -I$(top_srcdir)/compat/jansson
-else
-JANSSON_INCLUDES=
-endif
 
 EXTRA_DIST	= example-cfg.json nomacro.pl
 
