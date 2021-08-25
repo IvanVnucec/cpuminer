@@ -377,46 +377,6 @@ static inline void PBKDF2_SHA256_128_32_8way(uint32_t *tstate,
 
 #endif /* HAVE_SHA256_8WAY */
 
-
-#if defined(USE_ASM) && defined(__x86_64__)
-
-#define SCRYPT_MAX_WAYS 12
-#define HAVE_SCRYPT_3WAY 1
-int scrypt_best_throughput();
-void scrypt_core(uint32_t *X, uint32_t *V, int N);
-void scrypt_core_3way(uint32_t *X, uint32_t *V, int N);
-#if defined(USE_AVX2)
-#undef SCRYPT_MAX_WAYS
-#define SCRYPT_MAX_WAYS 24
-#define HAVE_SCRYPT_6WAY 1
-void scrypt_core_6way(uint32_t *X, uint32_t *V, int N);
-#endif
-
-#elif defined(USE_ASM) && defined(__i386__)
-
-#define SCRYPT_MAX_WAYS 4
-#define scrypt_best_throughput() 1
-void scrypt_core(uint32_t *X, uint32_t *V, int N);
-
-#elif defined(USE_ASM) && defined(__arm__) && defined(__APCS_32__)
-
-void scrypt_core(uint32_t *X, uint32_t *V, int N);
-#if defined(__ARM_NEON__)
-#undef HAVE_SHA256_4WAY
-#define SCRYPT_MAX_WAYS 3
-#define HAVE_SCRYPT_3WAY 1
-#define scrypt_best_throughput() 3
-void scrypt_core_3way(uint32_t *X, uint32_t *V, int N);
-#endif
-
-#elif defined(USE_ASM) && (defined(__powerpc__) || defined(__ppc__) || defined(__PPC__))
-
-#define SCRYPT_MAX_WAYS 4
-#define scrypt_best_throughput() 1
-void scrypt_core(uint32_t *X, uint32_t *V, int N);
-
-#else
-
 static inline void xor_salsa8(uint32_t B[16], const uint32_t Bx[16])
 {
 	uint32_t x00,x01,x02,x03,x04,x05,x06,x07,x08,x09,x10,x11,x12,x13,x14,x15;
@@ -503,7 +463,7 @@ static inline void scrypt_core(uint32_t *X, uint32_t *V, int N)
 	}
 }
 
-#endif
+
 
 #ifndef SCRYPT_MAX_WAYS
 #define SCRYPT_MAX_WAYS 1
