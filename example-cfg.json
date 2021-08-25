@@ -6,7 +6,7 @@
 	"user" : "rpcuser",
 	"pass" : "rpcpass",
 
-	"algo" : "scrypt",
+	"algo" : "sha256d",
 	"threads" : "4",
 
 	"quiet" : true
