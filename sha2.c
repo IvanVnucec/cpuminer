@@ -248,11 +248,13 @@ static inline void sha256d_prehash(uint32_t *S, const uint32_t *W)
 
 #ifdef EXTERN_SHA256
 
+// sha256d Midstate
 void sha256d_ms(uint32_t *hash, uint32_t *W,
 	const uint32_t *midstate, const uint32_t *prehash);
 
 #else
 
+// sha256d Midstate
 static inline void sha256d_ms(uint32_t *hash, uint32_t *W,
 	const uint32_t *midstate, const uint32_t *prehash)
 {
