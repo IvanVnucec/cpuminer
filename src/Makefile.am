@@ -1,5 +1,6 @@
 bin_PROGRAMS = cpuminer
 cpuminer_SOURCES = \
+	main.c \
 	cpu-miner.c \
 	sha2.c \
 	util.c

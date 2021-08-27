@@ -150,6 +150,10 @@ struct work_restart {
 	char			padding[128 - sizeof(unsigned long)];
 };
 
+enum algos {
+	ALGO_SHA256D,		/* SHA-256d */
+};
+
 extern bool opt_debug;
 extern bool opt_protocol;
 extern bool opt_redirect;
@@ -169,6 +173,20 @@ extern struct thr_info *thr_info;
 extern int longpoll_thr_id;
 extern int stratum_thr_id;
 extern struct work_restart *work_restart;
+extern enum algos opt_algo;
+extern const char *algo_names[];
+extern int work_thr_id;
+extern double *thr_hashrates;
+extern int opt_n_threads;
+extern int num_processors;
+extern bool opt_background;
+extern pthread_mutex_t stats_lock;
+extern struct stratum_ctx stratum;
+extern pthread_mutex_t g_work_lock;
+extern char *rpc_userpass;
+extern char *rpc_user, *rpc_pass;
+extern char *rpc_url;
+extern bool opt_benchmark;
 
 #define JSON_RPC_LONGPOLL	(1 << 0)
 #define JSON_RPC_QUIET_404	(1 << 1)
@@ -240,5 +258,13 @@ extern bool tq_push(struct thread_q *tq, void *data);
 extern void *tq_pop(struct thread_q *tq, const struct timespec *abstime);
 extern void tq_freeze(struct thread_q *tq);
 extern void tq_thaw(struct thread_q *tq);
+
+extern void *miner_thread(void *userdata);
+void *stratum_thread(void *userdata);
+void *longpoll_thread(void *userdata);
+void *workio_thread(void *userdata);
+void signal_handler(int sig);
+void parse_cmdline(int argc, char *argv[]);
+void show_usage_and_exit(int status);
 
 #endif /* __MINER_H__ */

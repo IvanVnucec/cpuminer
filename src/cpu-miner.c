@@ -99,17 +99,13 @@ struct workio_cmd {
 	} u;
 };
 
-enum algos {
-	ALGO_SHA256D,		/* SHA-256d */
-};
-
-static const char *algo_names[] = {
+const char *algo_names[] = {
 	[ALGO_SHA256D]		= "sha256d",
 };
 
 bool opt_debug = false;
 bool opt_protocol = false;
-static bool opt_benchmark = false;
+bool opt_benchmark = false;
 bool opt_redirect = true;
 bool want_longpoll = true;
 bool have_longpoll = false;
@@ -118,18 +114,18 @@ bool allow_getwork = true;
 bool want_stratum = true;
 bool have_stratum = false;
 bool use_syslog = false;
-static bool opt_background = false;
+bool opt_background = false;
 static bool opt_quiet = false;
 static int opt_retries = -1;
 static int opt_fail_pause = 30;
 int opt_timeout = 0;
 static int opt_scantime = 5;
-static enum algos opt_algo = ALGO_SHA256D;
-static int opt_n_threads;
-static int num_processors;
-static char *rpc_url;
-static char *rpc_userpass;
-static char *rpc_user, *rpc_pass;
+enum algos opt_algo = ALGO_SHA256D;
+int opt_n_threads;
+int num_processors;
+char *rpc_url;
+char *rpc_userpass;
+char *rpc_user, *rpc_pass;
 static int pk_script_size;
 static unsigned char pk_script[42];
 static char coinbase_sig[101] = "";
@@ -137,18 +133,18 @@ char *opt_cert;
 char *opt_proxy;
 long opt_proxy_type;
 struct thr_info *thr_info;
-static int work_thr_id;
+int work_thr_id;
 int longpoll_thr_id = -1;
 int stratum_thr_id = -1;
 struct work_restart *work_restart = NULL;
-static struct stratum_ctx stratum;
+struct stratum_ctx stratum;
 
 pthread_mutex_t applog_lock;
-static pthread_mutex_t stats_lock;
+pthread_mutex_t stats_lock;
 
 static unsigned long accepted_count = 0L;
 static unsigned long rejected_count = 0L;
-static double *thr_hashrates;
+double *thr_hashrates;
 
 #ifdef HAVE_GETOPT_LONG
 #include <getopt.h>
@@ -264,7 +260,7 @@ struct work {
 
 static struct work g_work;
 static time_t g_work_time;
-static pthread_mutex_t g_work_lock;
+pthread_mutex_t g_work_lock;
 static bool submit_old = false;
 static char *lp_id;
 
@@ -950,7 +946,7 @@ static bool workio_submit_work(struct workio_cmd *wc, CURL *curl)
 	return true;
 }
 
-static void *workio_thread(void *userdata)
+void *workio_thread(void *userdata)
 {
 	struct thr_info *mythr = userdata;
 	CURL *curl;
@@ -1111,7 +1107,7 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 	diff_to_target(work->target, sctx->job.diff);
 }
 
-static void *miner_thread(void *userdata)
+void *miner_thread(void *userdata)
 {
 	struct thr_info *mythr = userdata;
 	int thr_id = mythr->id;
@@ -1259,7 +1255,7 @@ static void restart_threads(void)
 		work_restart[i].restart = 1;
 }
 
-static void *longpoll_thread(void *userdata)
+void *longpoll_thread(void *userdata)
 {
 	struct thr_info *mythr = userdata;
 	CURL *curl = NULL;
@@ -1392,7 +1388,7 @@ out:
 	return ret;
 }
 
-static void *stratum_thread(void *userdata)
+void *stratum_thread(void *userdata)
 {
 	struct thr_info *mythr = userdata;
 	char *s;
@@ -1467,7 +1463,7 @@ static void show_version_and_exit(void)
 	exit(0);
 }
 
-static void show_usage_and_exit(int status)
+void show_usage_and_exit(int status)
 {
 	if (status)
 		fprintf(stderr, "Try `" PROGRAM_NAME " --help' for more information.\n");
@@ -1744,7 +1740,7 @@ static void parse_config(json_t *config, char *pname, char *ref)
 	}
 }
 
-static void parse_cmdline(int argc, char *argv[])
+void parse_cmdline(int argc, char *argv[])
 {
 	int key;
 
@@ -1767,7 +1763,7 @@ static void parse_cmdline(int argc, char *argv[])
 }
 
 #ifndef WIN32
-static void signal_handler(int sig)
+void signal_handler(int sig)
 {
 	switch (sig) {
 	case SIGHUP:
@@ -1784,170 +1780,3 @@ static void signal_handler(int sig)
 	}
 }
 #endif
-
-int main(int argc, char *argv[])
-{
-	struct thr_info *thr;
-	long flags;
-	int i;
-
-	rpc_user = strdup("");
-	rpc_pass = strdup("");
-
-	/* parse command line */
-	parse_cmdline(argc, argv);
-
-	if (!opt_benchmark && !rpc_url) {
-		fprintf(stderr, "%s: no URL supplied\n", argv[0]);
-		show_usage_and_exit(1);
-	}
-
-	if (!rpc_userpass) {
-		rpc_userpass = malloc(strlen(rpc_user) + strlen(rpc_pass) + 2);
-		if (!rpc_userpass)
-			return 1;
-		sprintf(rpc_userpass, "%s:%s", rpc_user, rpc_pass);
-	}
-
-	pthread_mutex_init(&applog_lock, NULL);
-	pthread_mutex_init(&stats_lock, NULL);
-	pthread_mutex_init(&g_work_lock, NULL);
-	pthread_mutex_init(&stratum.sock_lock, NULL);
-	pthread_mutex_init(&stratum.work_lock, NULL);
-
-	flags = opt_benchmark || (strncasecmp(rpc_url, "https://", 8) &&
-	                          strncasecmp(rpc_url, "stratum+tcps://", 15))
-	      ? (CURL_GLOBAL_ALL & ~CURL_GLOBAL_SSL)
-	      : CURL_GLOBAL_ALL;
-	if (curl_global_init(flags)) {
-		applog(LOG_ERR, "CURL initialization failed");
-		return 1;
-	}
-
-#ifndef WIN32
-	if (opt_background) {
-		i = fork();
-		if (i < 0) exit(1);
-		if (i > 0) exit(0);
-		i = setsid();
-		if (i < 0)
-			applog(LOG_ERR, "setsid() failed (errno = %d)", errno);
-		i = chdir("/");
-		if (i < 0)
-			applog(LOG_ERR, "chdir() failed (errno = %d)", errno);
-		signal(SIGHUP, signal_handler);
-		signal(SIGINT, signal_handler);
-		signal(SIGTERM, signal_handler);
-	}
-#endif
-
-#if defined(WIN32)
-	SYSTEM_INFO sysinfo;
-	GetSystemInfo(&sysinfo);
-	num_processors = sysinfo.dwNumberOfProcessors;
-#elif defined(_SC_NPROCESSORS_CONF)
-	num_processors = sysconf(_SC_NPROCESSORS_CONF);
-#elif defined(CTL_HW) && defined(HW_NCPU)
-	int req[] = { CTL_HW, HW_NCPU };
-	size_t len = sizeof(num_processors);
-	sysctl(req, 2, &num_processors, &len, NULL, 0);
-#else
-	num_processors = 1;
-#endif
-	if (num_processors < 1)
-		num_processors = 1;
-	if (!opt_n_threads)
-		opt_n_threads = num_processors;
-
-#ifdef HAVE_SYSLOG_H
-	if (use_syslog)
-		openlog("cpuminer", LOG_PID, LOG_USER);
-#endif
-
-	work_restart = calloc(opt_n_threads, sizeof(*work_restart));
-	if (!work_restart)
-		return 1;
-
-	thr_info = calloc(opt_n_threads + 3, sizeof(*thr));
-	if (!thr_info)
-		return 1;
-	
-	thr_hashrates = (double *) calloc(opt_n_threads, sizeof(double));
-	if (!thr_hashrates)
-		return 1;
-
-	/* init workio thread info */
-	work_thr_id = opt_n_threads;
-	thr = &thr_info[work_thr_id];
-	thr->id = work_thr_id;
-	thr->q = tq_new();
-	if (!thr->q)
-		return 1;
-
-	/* start work I/O thread */
-	if (pthread_create(&thr->pth, NULL, workio_thread, thr)) {
-		applog(LOG_ERR, "workio thread create failed");
-		return 1;
-	}
-
-	if (want_longpoll && !have_stratum) {
-		/* init longpoll thread info */
-		longpoll_thr_id = opt_n_threads + 1;
-		thr = &thr_info[longpoll_thr_id];
-		thr->id = longpoll_thr_id;
-		thr->q = tq_new();
-		if (!thr->q)
-			return 1;
-
-		/* start longpoll thread */
-		if (unlikely(pthread_create(&thr->pth, NULL, longpoll_thread, thr))) {
-			applog(LOG_ERR, "longpoll thread create failed");
-			return 1;
-		}
-	}
-	if (want_stratum) {
-		/* init stratum thread info */
-		stratum_thr_id = opt_n_threads + 2;
-		thr = &thr_info[stratum_thr_id];
-		thr->id = stratum_thr_id;
-		thr->q = tq_new();
-		if (!thr->q)
-			return 1;
-
-		/* start stratum thread */
-		if (unlikely(pthread_create(&thr->pth, NULL, stratum_thread, thr))) {
-			applog(LOG_ERR, "stratum thread create failed");
-			return 1;
-		}
-
-		if (have_stratum)
-			tq_push(thr_info[stratum_thr_id].q, strdup(rpc_url));
-	}
-
-	/* start mining threads */
-	for (i = 0; i < opt_n_threads; i++) {
-		thr = &thr_info[i];
-
-		thr->id = i;
-		thr->q = tq_new();
-		if (!thr->q)
-			return 1;
-
-		if (unlikely(pthread_create(&thr->pth, NULL, miner_thread, thr))) {
-			applog(LOG_ERR, "thread %d create failed", i);
-			return 1;
-		}
-	}
-
-	applog(LOG_INFO, "%d miner threads started, "
-		"using '%s' algorithm.",
-		opt_n_threads,
-		algo_names[opt_algo]);
-
-	/* main loop - simply wait for workio thread to exit */
-	pthread_join(thr_info[work_thr_id].pth, NULL);
-
-	applog(LOG_INFO, "workio thread dead, exiting.");
-
-	return 0;
-}
