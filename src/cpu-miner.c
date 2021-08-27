@@ -35,7 +35,6 @@
 #endif
 #include <jansson.h>
 #include <curl/curl.h>
-#include "compat.h"
 #include "miner.h"
 
 #define PROGRAM_NAME		"minerd"

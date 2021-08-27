@@ -26,15 +26,9 @@
 #include <jansson.h>
 #include <curl/curl.h>
 #include <time.h>
-#if defined(WIN32)
-#include <winsock2.h>
-#include <mstcpip.h>
-#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#endif
-#include "compat.h"
 #include "miner.h"
 #include "elist.h"
 
