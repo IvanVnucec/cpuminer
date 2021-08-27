@@ -25,3 +25,4 @@ config.sub
 
 mingw32-config.cache
 
+test-driver
