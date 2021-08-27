@@ -11,7 +11,7 @@
  */
 
 #define _GNU_SOURCE
-#include "cpuminer-config.h"
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>

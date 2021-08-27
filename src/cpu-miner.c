@@ -8,7 +8,7 @@
  * any later version.  See COPYING for more details.
  */
 
-#include "cpuminer-config.h"
+#include <config.h>
 #define _GNU_SOURCE
 
 #include <stdio.h>
@@ -37,8 +37,6 @@
 #include <curl/curl.h>
 #include "compat.h"
 #include "miner.h"
-
-#include "say_hello.h"
 
 #define PROGRAM_NAME		"minerd"
 #define LP_SCANTIME		60
@@ -1461,17 +1459,7 @@ out:
 
 static void show_version_and_exit(void)
 {
-	printf(PACKAGE_STRING "\n built on " __DATE__ "\n features:"
-#if defined(__x86_64__) && defined(USE_AVX)
-		" AVX"
-#endif
-#if defined(__x86_64__) && defined(USE_AVX2)
-		" AVX2"
-#endif
-#if defined(__x86_64__) && defined(USE_XOP)
-		" XOP"
-#endif
-		"\n");
+	printf("\n built on " __DATE__ "\n features:""\n");
 
 	printf("%s\n", curl_version());
 #ifdef JANSSON_VERSION
@@ -1800,8 +1788,6 @@ static void signal_handler(int sig)
 
 int main(int argc, char *argv[])
 {
-	say_hello();
-	
 	struct thr_info *thr;
 	long flags;
 	int i;

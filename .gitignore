@@ -1,6 +1,5 @@
-
-minerd
-minerd.exe
+builddir
+cpuminer
 *.o
 
 autom4te.cache
@@ -16,7 +15,7 @@ depcomp
 missing
 install-sh
 stamp-h1
-cpuminer-config.h*
+config.h*
 compile
 config.log
 config.status
