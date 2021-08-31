@@ -1,5 +1,11 @@
 AC_INIT([cpuminer], [1.0])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
+
+# Check for libraries
+AC_CHECK_LIB([curl], [curl_easy_setopt])
+AC_CHECK_LIB([pthread], [pthread_create])
+AC_CHECK_LIB([jansson], [json_loads])
+
 AC_PROG_CC
 AC_DEFINE([HAVE_GETOPT_LONG], [1], [Description])
 AC_CONFIG_HEADERS([config.h])
