@@ -473,6 +473,16 @@ int scanhash_sha256d(int thr_id, uint32_t *pdata, const uint32_t *ptarget,
 	const uint32_t first_nonce = pdata[19];
 	const uint32_t Htarg = ptarget[7];
 
+	char hex[32*4*2];
+	bin2hex(hex, (unsigned char *)pdata, 32*4);
+	printf("data = %s\n", hex);
+
+	char hex2[8*4*2];
+	bin2hex(hex2, (unsigned char *)ptarget, 8*4);
+	printf("target = %s\n", hex2);
+
+	printf("max_nonce = %u\n", max_nonce);
+
 	/* Bitcoin hashing works in two steps:
 		1. Calculating sha of first constant part
 		2. Calculating so called midstate which changes every time
